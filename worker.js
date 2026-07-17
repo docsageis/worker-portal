@@ -36,12 +36,46 @@ export default {
 
       const body = await request.json();
 
+      // =============================
+      // Dados da requisição
+      // =============================
+
+      const ip =
+          request.headers.get("CF-Connecting-IP") ||
+          request.headers.get("X-Forwarded-For") ||
+          "";
+
+      const userAgent =
+          request.headers.get("User-Agent") || "";
+
+      let sistemaOperacional = "";
+
+      if (/Windows/i.test(userAgent))
+          sistemaOperacional = "Windows";
+      else if (/Android/i.test(userAgent))
+          sistemaOperacional = "Android";
+      else if (/iPhone|iPad|iOS/i.test(userAgent))
+          sistemaOperacional = "iOS";
+      else if (/Mac/i.test(userAgent))
+          sistemaOperacional = "macOS";
+      else if (/Linux/i.test(userAgent))
+          sistemaOperacional = "Linux";
+      else
+          sistemaOperacional = "Desconhecido";
+
+      // Acrescenta as informações ao objeto recebido
+      body.ip = ip;
+      body.navegador = userAgent;
+      body.sistemaOperacional = sistemaOperacional;
+      body.timestamp = new Date().toISOString();
+
+      // Encaminha ao Apps Script
       const resposta = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
       });
 
       const texto = await resposta.text();
