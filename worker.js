@@ -48,6 +48,14 @@ export default {
       const userAgent =
           request.headers.get("User-Agent") || "";
 
+      const cidade =
+          request.headers.get("CF-IPCity") || "";
+
+      const uf =
+          request.headers.get("CF-Region-Code") ||
+          request.headers.get("CF-Region") ||
+          "";
+
       let sistemaOperacional = "";
 
       if (/Windows/i.test(userAgent))
@@ -67,6 +75,8 @@ export default {
       body.ip = ip;
       body.navegador = userAgent;
       body.sistemaOperacional = sistemaOperacional;
+      body.cidade = cidade;
+      body.uf = uf;
       body.timestamp = new Date().toISOString();
 
       // Encaminha ao Apps Script
