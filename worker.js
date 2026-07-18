@@ -72,13 +72,18 @@ export default {
           sistemaOperacional = "Desconhecido";
 
       // Acrescenta as informações ao objeto recebido
+      const cf = request.cf || {};
+
       body.ip = ip;
       body.navegador = userAgent;
       body.sistemaOperacional = sistemaOperacional;
-      body.cidade = cidade;
-      body.uf = uf;
-      body.timestamp = new Date().toISOString();
 
+      body.cidade = cf.city || "";
+      body.uf = cf.regionCode || cf.region || "";
+
+      body.timestamp = new Date().toISOString();
+console.log("CF:", request.cf);
+console.log("BODY:", body);
       // Encaminha ao Apps Script
       const resposta = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
