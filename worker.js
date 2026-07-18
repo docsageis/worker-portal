@@ -10,7 +10,6 @@ export default {
 
   async fetch(request) {
 
-    // Preflight (CORS)
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -18,7 +17,6 @@ export default {
       });
     }
 
-    // Aceita somente POST
     if (request.method !== "POST") {
       return Response.json(
         {
@@ -37,42 +35,33 @@ export default {
       const body = await request.json();
 
       // =============================
-      // Dados da requisição
+      // Informações da Cloudflare
       // =============================
 
+      const cf = request.cf || {};
+
       const ip =
-          request.headers.get("CF-Connecting-IP") ||
-          request.headers.get("X-Forwarded-For") ||
-          "";
+        request.headers.get("CF-Connecting-IP") ||
+        request.headers.get("X-Forwarded-For") ||
+        "";
 
       const userAgent =
-          request.headers.get("User-Agent") || "";
+        request.headers.get("User-Agent") || "";
 
-      const cidade =
-          request.headers.get("CF-IPCity") || "";
-
-      const uf =
-          request.headers.get("CF-Region-Code") ||
-          request.headers.get("CF-Region") ||
-          "";
-
-      let sistemaOperacional = "";
+      let sistemaOperacional = "Desconhecido";
 
       if (/Windows/i.test(userAgent))
-          sistemaOperacional = "Windows";
+        sistemaOperacional = "Windows";
       else if (/Android/i.test(userAgent))
-          sistemaOperacional = "Android";
+        sistemaOperacional = "Android";
       else if (/iPhone|iPad|iOS/i.test(userAgent))
-          sistemaOperacional = "iOS";
+        sistemaOperacional = "iOS";
       else if (/Mac/i.test(userAgent))
-          sistemaOperacional = "macOS";
+        sistemaOperacional = "macOS";
       else if (/Linux/i.test(userAgent))
-          sistemaOperacional = "Linux";
-      else
-          sistemaOperacional = "Desconhecido";
+        sistemaOperacional = "Linux";
 
-      // Acrescenta as informações ao objeto recebido
-      const cf = request.cf || {};
+      // Acrescenta ao body
 
       body.ip = ip;
       body.navegador = userAgent;
@@ -80,17 +69,29 @@ export default {
 
       body.cidade = cf.city || "";
       body.uf = cf.regionCode || cf.region || "";
+      body.pais = cf.country || "";
 
       body.timestamp = new Date().toISOString();
-console.log("CF:", request.cf);
-console.log("BODY:", body);
-      // Encaminha ao Apps Script
+
+      // Logs para diagnóstico
+
+      console.log("================================");
+      console.log("REQUEST.CF");
+      console.log(JSON.stringify(cf, null, 2));
+
+      console.log("================================");
+      console.log("BODY ENVIADO");
+      console.log(JSON.stringify(body, null, 2));
+      console.log("================================");
+
+      // Envia ao Apps Script
+
       const resposta = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify(body)
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
       });
 
       const texto = await resposta.text();
@@ -104,6 +105,8 @@ console.log("BODY:", body);
       });
 
     } catch (erro) {
+
+      console.error(erro);
 
       return Response.json(
         {
