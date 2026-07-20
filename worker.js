@@ -57,27 +57,6 @@ export default {
         request.headers.get("User-Agent") || "";
 
       // ==========================
-      // Navegador
-      // ==========================
-
-      let navegador = "Desconhecido";
-
-      if (/Edg\/([\d.]+)/i.test(userAgent))
-        navegador = "Microsoft Edge " + userAgent.match(/Edg\/([\d.]+)/i)[1];
-
-      else if (/OPR\/([\d.]+)/i.test(userAgent))
-        navegador = "Opera " + userAgent.match(/OPR\/([\d.]+)/i)[1];
-
-      else if (/Chrome\/([\d.]+)/i.test(userAgent))
-        navegador = "Google Chrome " + userAgent.match(/Chrome\/([\d.]+)/i)[1];
-
-      else if (/Firefox\/([\d.]+)/i.test(userAgent))
-        navegador = "Mozilla Firefox " + userAgent.match(/Firefox\/([\d.]+)/i)[1];
-
-      else if (/Version\/([\d.]+).*Safari/i.test(userAgent))
-        navegador = "Safari " + userAgent.match(/Version\/([\d.]+)/i)[1];
-
-      // ==========================
       // Sistema Operacional
       // ==========================
 
@@ -101,16 +80,13 @@ export default {
       body.ip = ip;
       body.cidade = cf.city || "";
       body.uf = cf.regionCode || cf.region || "";
-      body.navegador = "TESTE WORKER NOVO";
+      body.navegador = identificarNavegador(userAgent);
       body.sistemaOperacional = sistemaOperacional;
       body.timestamp = new Date().toISOString();
 
       // ==========================
       // Envia ao Apps Script
       // ==========================
-
-     console.log("NAVEGADOR FINAL:", body.navegador);
-console.log(JSON.stringify(body, null, 2));
      
       const resposta = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
@@ -147,4 +123,36 @@ console.log(JSON.stringify(body, null, 2));
 
   }
 
+}
+
+function identificarNavegador(userAgent) {
+
+  if (!userAgent) return "Desconhecido";
+
+  let m;
+
+  if ((m = userAgent.match(/Edg\/([\d.]+)/i))) {
+    return "Microsoft Edge " + m[1].split(".")[0];
+  }
+
+  if ((m = userAgent.match(/OPR\/([\d.]+)/i))) {
+    return "Opera " + m[1].split(".")[0];
+  }
+
+  if ((m = userAgent.match(/Chrome\/([\d.]+)/i)) &&
+      !userAgent.includes("Edg") &&
+      !userAgent.includes("OPR")) {
+    return "Google Chrome " + m[1].split(".")[0];
+  }
+
+  if ((m = userAgent.match(/Firefox\/([\d.]+)/i))) {
+    return "Mozilla Firefox " + m[1].split(".")[0];
+  }
+
+  if ((m = userAgent.match(/Version\/([\d.]+).*Safari/i)) &&
+      !userAgent.includes("Chrome")) {
+    return "Safari " + m[1].split(".")[0];
+  }
+
+  return "Outro";
 }
