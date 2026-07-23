@@ -8,7 +8,7 @@ const CORS_HEADERS = {
 
 export default {
 
-  async fetch(request) {
+  async fetch(request, env, ctx) {
 
     // ==========================
     // CORS
@@ -37,6 +37,44 @@ export default {
     try {
 
       const body = await request.json();
+      
+      // Upload da licença para o R2
+
+      if (body.portal === "UPLOAD_LICENCA") {
+
+        if (!body.arquivo || !body.conteudo) {
+
+          return Response.json(
+              {
+                  ok: false,
+                  erro: "Arquivo ou conteúdo não informado."
+              },
+              {
+                  status: 400,
+                  headers: CORS_HEADERS
+              }
+          );
+
+      }
+
+    await env.LICENCAS.put(
+      body.arquivo,
+      body.conteudo
+    );
+
+    return Response.json(
+      {
+        ok: true,
+        arquivo: body.arquivo,
+        tamanho: body.conteudo.length,
+        mensagem: "Licença enviada ao R2 com sucesso."
+      },
+      {
+        headers: CORS_HEADERS
+      }
+    );
+
+  }
 
       const cf = request.cf || {};
 
