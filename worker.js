@@ -57,24 +57,29 @@ export default {
 
       }
 
-      await env.LICENCAS.put(
-        body.arquivo,
-        body.conteudo
-      );
+        // Restaura as quebras de linha recebidas do JSON
+        const conteudo = body.conteudo
+            .replace(/\\r\\n/g, "\r\n")
+            .replace(/\\r/g, "\r")
+            .replace(/\\n/g, "\n");
 
-      return Response.json(
-        {
-          ok: true,
-          arquivo: body.arquivo,
-          tamanho: body.conteudo.length,
-          mensagem: "Licença enviada ao R2 com sucesso."
-        },
-        {
-          headers: CORS_HEADERS
-        }
-      );
+        await env.LICENCAS.put(
+            body.arquivo,
+            conteudo
+        );
 
-    }
+        return Response.json(
+            {
+                ok: true,
+                arquivo: body.arquivo,
+                mensagem: "Licença enviada ao R2 com sucesso."
+            },
+            {
+                headers: CORS_HEADERS
+            }
+        );
+
+      }
 
       // ==========================
       // Download da licença do R2
