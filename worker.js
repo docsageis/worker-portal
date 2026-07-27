@@ -57,24 +57,77 @@ export default {
 
       }
 
-    await env.LICENCAS.put(
-      body.arquivo,
-      body.conteudo
-    );
+      await env.LICENCAS.put(
+        body.arquivo,
+        body.conteudo
+      );
 
-    return Response.json(
-      {
-        ok: true,
-        arquivo: body.arquivo,
-        tamanho: body.conteudo.length,
-        mensagem: "Licença enviada ao R2 com sucesso."
-      },
-      {
-        headers: CORS_HEADERS
+      return Response.json(
+        {
+          ok: true,
+          arquivo: body.arquivo,
+          tamanho: body.conteudo.length,
+          mensagem: "Licença enviada ao R2 com sucesso."
+        },
+        {
+          headers: CORS_HEADERS
+        }
+      );
+
+    }
+
+      // ==========================
+      // Download da licença do R2
+      // ==========================
+
+      if (body.portal === "DOWNLOAD_LICENCA") {
+
+          if (!body.arquivo) {
+
+              return Response.json(
+                  {
+                      ok: false,
+                      mensagem: "Arquivo não informado."
+                  },
+                  {
+                      status: 400,
+                      headers: CORS_HEADERS
+                  }
+              );
+
+          }
+
+          const objeto = await env.LICENCAS.get(body.arquivo);
+
+          if (!objeto) {
+
+              return Response.json(
+                  {
+                      ok: false,
+                      mensagem: "Licença não encontrada."
+                  },
+                  {
+                      status: 404,
+                      headers: CORS_HEADERS
+                  }
+              );
+
+          }
+
+          const conteudo = await objeto.text();
+
+          return Response.json(
+              {
+                  ok: true,
+                  arquivo: body.arquivo,
+                  conteudo: conteudo
+              },
+              {
+                  headers: CORS_HEADERS
+              }
+          );
+
       }
-    );
-
-  }
 
       const cf = request.cf || {};
 
